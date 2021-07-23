@@ -79,9 +79,9 @@ do
     # C:\temp folder just as example..
     Expand-Archive -LiteralPath $path -DestinationPath "\\$serverName\c$\temp\" -Force
     Write-host "----Install PostgreSQL Version----"
-
+    cd $PSScriptRoot
     #Invoke-Command  -ComputerName $serverName -ScriptBlock {"c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data –username=aidocapp --pwfile=<(echo aidcopass)  –auth=trust"}
-    Invoke-Command  -ComputerName $serverName -ScriptBlock {"c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data"}
+    Invoke-Command  -ComputerName $serverName -FilePath ".\installPostgreSQL.ps1"
 
 
 
