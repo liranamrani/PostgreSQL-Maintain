@@ -12,6 +12,7 @@ Write-Host "Created By Liran Amrani"
     Write-Host "2: Press '2' for Install PostgresSQL Version"
     Write-Host "3: Press '3' for Getting information about EOL"
     Write-Host "4: Press '4' for Getting list of Available Versions"
+    Write-Host "5: Press '5' for Check installed Version Number"
     Write-Host "Q: Press 'Q' to quit."
 }
 do
@@ -65,25 +66,33 @@ do
     $count = $count+1
     }
 
+    #Special Section for the options that postgreSQL is already installed in remote machine.
+    if (Test-Path "\\$serverName\C$\temp\pgsql\bin\psql.exe")
+    {
+    $installedVersion = .\checkPostgreSQLVersion.ps1
+    write-host $count ": Press '" $count "' for Install Current Extracted Version [ $installedVersion ] without extracting new version" 
+    }
     #Get Valid Input from user
     DO
     {
 
      $selection = Read-Host "Please make a selection"
 
-    } Until ($selection -le $versionsAvailable.Count)
+    } Until ($selection -le $count)
+    if ($selection -ne $count){
     # choose File to Unzip
     $path = $versionsAvailable.FullName[$selection-1]
 
     Write-host "----Unzip PostgreSQL Version----"
     # C:\temp folder just as example..
     Expand-Archive -LiteralPath $path -DestinationPath "\\$serverName\c$\temp\" -Force
+    }
     Write-host "----Install PostgreSQL Version----"
     cd $PSScriptRoot
     #Invoke-Command  -ComputerName $serverName -ScriptBlock {"c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data –username=aidocapp --pwfile=<(echo aidcopass)  –auth=trust"}
 
-    $secureString = 'PlainTextp@ssw0rd' | ConvertTo-SecureString -AsPlainText -Force
-    $credential = New-Object pscredential('USERNAME', $secureString)
+    #$secureString = 'PlainTextp@ssw0rd' | ConvertTo-SecureString -AsPlainText -Force
+    #$credential = New-Object pscredential('USERNAME', $secureString)
     if ($serverName -ne "localhost")
     {
     Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\installPostgreSQL.ps1" 
@@ -107,6 +116,22 @@ do
       $r = Invoke-WebRequest $url
       cd $PSScriptRoot
       Get-WebRequestTable.ps1 $r -TableNumber 0 | Format-Table -Auto
+
+    }
+        '5' {
+ $defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\checkPostgreSQLVersion.ps1" 
+    }
+    else
+    {
+    powershell ".\checkPostgreSQLVersion.ps1"
+    }
+
+
 
     }
     }
