@@ -81,8 +81,17 @@ do
     Write-host "----Install PostgreSQL Version----"
     cd $PSScriptRoot
     #Invoke-Command  -ComputerName $serverName -ScriptBlock {"c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data –username=aidocapp --pwfile=<(echo aidcopass)  –auth=trust"}
-    Invoke-Command  -ComputerName $serverName -FilePath ".\installPostgreSQL.ps1"
 
+    $secureString = 'PlainTextp@ssw0rd' | ConvertTo-SecureString -AsPlainText -Force
+    $credential = New-Object pscredential('USERNAME', $secureString)
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\installPostgreSQL.ps1" 
+    }
+    else
+    {
+    powershell ".\installPostgreSQL.ps1"
+    }
 
 
 
