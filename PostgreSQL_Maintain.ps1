@@ -7,13 +7,13 @@ function Show-Menu {
     Clear-Host
 Write-Host "Created By Liran Amrani"
     Write-Host "================ $Title ================"
-    
     Write-Host "1: Press '1' for Download PostgresSQL Version."
     Write-Host "2: Press '2' for Install PostgresSQL Version"
     Write-Host "3: Press '3' for Getting information about EOL"
     Write-Host "4: Press '4' for Getting list of Available Versions"
     Write-Host "5: Press '5' for Check installed Version Number"
     Write-Host "Q: Press 'Q' to quit."
+    Write-Host "#PLEASE NOTICE - For Commands on remote machine - WinRM must be Available"
 }
 do
  {
@@ -43,7 +43,7 @@ do
 
      $selection = Read-Host "Please make a selection"
 
-    } Until ($selection -le $versions.Count)
+    } Until ($selection -le $versions.Count -and $selection -gt 0)
     
    
     $fileName = (".\postgreSQL-" + $versions[$selection-1][0] + ".zip")
@@ -83,10 +83,22 @@ do
     # choose File to Unzip
     $path = $versionsAvailable.FullName[$selection-1]
 
+
+
+
     Write-host "----Unzip PostgreSQL Version----"
     # C:\temp folder just as example..
     Expand-Archive -LiteralPath $path -DestinationPath "\\$serverName\c$\temp\" -Force
     }
+
+    #backup data folder if existed
+    if (Test-Path "\\$serverName\C$\temp\pgsql\data\")
+    {
+    Write-host "----Backup PostgreSQL Data Folder----"
+    "\\$serverName\c$\temp\pgsql\bin\pg_dumpall" > outfile
+       Remove-Item -path "\\$serverName\c$\temp\pgsql\data\" -Recurse
+    }
+
     Write-host "----Install PostgreSQL Version----"
     cd $PSScriptRoot
     #Invoke-Command  -ComputerName $serverName -ScriptBlock {"c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data –username=aidocapp --pwfile=<(echo aidcopass)  –auth=trust"}
