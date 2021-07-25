@@ -1,29 +1,5 @@
-﻿
-
-function Show-Menu {
-    param (
-        [string]$Title = 'PostgreSQL Maintain'
-    )
-    Clear-Host
-Write-Host "Created By Liran Amrani"
-    Write-Host "================ $Title ================"
-    Write-Host "1: Press '1' for Download PostgresSQL Version."
-    Write-Host "2: Press '2' for Install PostgresSQL Version"
-    Write-Host "3: Press '3' for Getting information about EOL"
-    Write-Host "4: Press '4' for Getting list of Available Versions"
-    Write-Host "5: Press '5' for Check installed Version Number"
-    Write-Host "Q: Press 'Q' to quit."
-    Write-Host "#PLEASE NOTICE - For Commands on remote machine - WinRM must be Available"
-}
-do
- {
-    Show-Menu
-    $selection = Read-Host "Please make a selection"
-    switch ($selection)
-    {
-    '1' {
-
-   #Add here new versions if needed.
+﻿function Download-PostgreSQL {
+ #Add here new versions if needed.
    $versions = @(
         @("v13.3","https://get.enterprisedb.com/postgresql/postgresql-13.3-2-windows-x64-binaries.zip"),
         @("v12.7","https://get.enterprisedb.com/postgresql/postgresql-12.7-2-windows-x64-binaries.zip")
@@ -51,9 +27,11 @@ do
     Invoke-WebRequest -Uri $versions[$selection-1][1] -OutFile $fileName
 
     
-    } '2' {
+}
 
-    $defaultValue = 'localhost'
+# taks from https://feilerdev.wordpress.com/2017/12/05/installing-postgresql-on-windows-using-zip-archive-without-the-installer/
+function Install-PostgreSQL {
+$defaultValue = 'localhost'
     if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
     #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
     $versionsAvailable = Get-ChildItem -Path .\Post*.zip | select Name,FullName
@@ -114,23 +92,23 @@ do
     powershell ".\installPostgreSQL.ps1"
     }
 
+}
 
-
-    } '3' {
+function Get-Info-EOL{
       $url = 'https://www.postgresql.org/support/versioning/'
       $r = Invoke-WebRequest $url
       cd $PSScriptRoot
-      Get-WebRequestTable.ps1 $r -TableNumber 0 | Format-Table -Auto
+      Get-WebRequestTable.ps1 $r -TableNumber 0 | Format-Table -Auto 
+}
 
-    }
-    '4' {
-      $url = 'https://www.postgresql.org/ftp/source/'
+function Get-Avilable-Versions {
+$url = 'https://www.postgresql.org/ftp/source/'
       $r = Invoke-WebRequest $url
       cd $PSScriptRoot
       Get-WebRequestTable.ps1 $r -TableNumber 0 | Format-Table -Auto
+      }
 
-    }
-        '5' {
+function Get-PostgreSQL-Version {
  $defaultValue = 'localhost'
     if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
     #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
@@ -142,11 +120,56 @@ do
     {
     powershell ".\checkPostgreSQLVersion.ps1"
     }
+}
+
+function Show-Menu {
+    param (
+        [string]$Title = 'PostgreSQL Maintain'
+    )
+    Clear-Host
+Write-Host "Created By Liran Amrani"
+    Write-Host "================ $Title ================"
+    Write-Host "1: Press '1' for Download PostgresSQL Version."
+    Write-Host "2: Press '2' for Install PostgresSQL Version"
+    Write-Host "3: Press '3' for Getting information about EOL"
+    Write-Host "4: Press '4' for Getting list of Available Versions"
+    Write-Host "5: Press '5' for Check installed Version Number"
+    Write-Host "Q: Press 'Q' to quit."
+    Write-Host "#PLEASE NOTICE - For Commands on remote machine - WinRM must be Available"
+}
+do
+ {
+    Show-Menu
+    $selection = Read-Host "Please make a selection"
+    switch ($selection)
+    {
+    '1' {
+    Download-PostgreSQL
+  
+    } '2' {
+    Install-PostgreSQL
 
 
+    } '3' {
+    Get-Info-EOL
+
+    }
+    '4' {
+    Get-Avilable-Versions
+
+    }
+        '5' {
+    Get-PostgreSQL-Version
 
     }
     }
     pause
  }
  until ($selection -eq 'q')
+
+
+
+
+
+
+
