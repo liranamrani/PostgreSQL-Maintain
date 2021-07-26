@@ -29,7 +29,7 @@
     
 }
 
-# taks from https://feilerdev.wordpress.com/2017/12/05/installing-postgresql-on-windows-using-zip-archive-without-the-installer/
+# take from https://feilerdev.wordpress.com/2017/12/05/installing-postgresql-on-windows-using-zip-archive-without-the-installer/
 function Install-PostgreSQL {
 $defaultValue = 'localhost'
     if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
@@ -74,7 +74,7 @@ $defaultValue = 'localhost'
     {
     Write-host "----Backup PostgreSQL Data Folder----"
     "\\$serverName\c$\temp\pgsql\bin\pg_dumpall" > outfile
-       Remove-Item -path "\\$serverName\c$\temp\pgsql\data\" -Recurse
+       Remove-Item -path "\\$serverName\c$\temp\pgsql\data\" -Recurse 
     }
 
     Write-host "----Install PostgreSQL Version----"
@@ -122,6 +122,22 @@ function Get-PostgreSQL-Version {
     }
 }
 
+function Start-PostgreSQL {
+ $defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\Start-PostgreSQL.ps1" 
+    }
+    else
+    {
+    powershell ".\Start-PostgreSQL.ps1"
+    }
+}
+
+
+
 function Show-Menu {
     param (
         [string]$Title = 'PostgreSQL Maintain'
@@ -137,6 +153,7 @@ Write-Host "Created By Liran Amrani"
     Write-Host "Q: Press 'Q' to quit."
     Write-Host "#PLEASE NOTICE - For Commands on remote machine - WinRM must be Available"
 }
+
 do
  {
     Show-Menu
