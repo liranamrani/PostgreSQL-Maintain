@@ -73,8 +73,18 @@ $defaultValue = 'localhost'
     if (Test-Path "\\$serverName\C$\temp\pgsql\data\")
     {
     Write-host "----Backup PostgreSQL Data Folder----"
-    "\\$serverName\c$\temp\pgsql\bin\pg_dumpall" > outfile
-       Remove-Item -path "\\$serverName\c$\temp\pgsql\data\" -Recurse 
+       if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"c:\temp\pgsql\bin\pg_dumpall > backupFile "}
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"Remove-Item -Path 'C:\temp\pgsql\data -Recurse'"}
+    }
+    else
+    {
+    c:\temp\pgsql\bin\pg_dumpall > backupFile.sql 
+    }
+    Write-Host "Backup completed."
+   
+       Remove-Item -Path "C:\temp\pgsql\data" -Recurse 
     }
 
     Write-host "----Install PostgreSQL Version----"
@@ -86,10 +96,13 @@ $defaultValue = 'localhost'
     if ($serverName -ne "localhost")
     {
     Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\installPostgreSQL.ps1" 
+    Start-PostgreSQL
+
     }
     else
     {
     powershell ".\installPostgreSQL.ps1"
+    Start-PostgreSQL
     }
 
 }
@@ -128,14 +141,76 @@ function Start-PostgreSQL {
     #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
     if ($serverName -ne "localhost")
     {
-    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -FilePath ".\Start-PostgreSQL.ps1" 
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"C:\temp\pgsql\bin\pg_ctl.exe start -D C:\temp\pgsql/data"} 
     }
     else
     {
-    powershell ".\Start-PostgreSQL.ps1"
+    C:\temp\pgsql\bin\pg_ctl.exe start -D C:\temp\pgsql/data
+    }
+}
+function Stop-PostgreSQL {
+ $defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"C:\temp\pgsql\bin\pg_ctl.exe stop -D C:\temp\pgsql/data"} 
+    }
+    else
+    {
+    C:\temp\pgsql\bin\pg_ctl.exe stop -D C:\temp\pgsql/data
     }
 }
 
+function Create-AIdoc-user-and-db {
+$defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"C:\temp\pgsql\bin\createuser.exe -s aidocapp"}
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"C:\temp\pgsql\bin\createdb.exe aidocapp"} 
+    }
+    else
+    {
+    C:\temp\pgsql\bin\createuser.exe -s aidocapp
+    C:\temp\pgsql\bin\createdb.exe aidocapp
+
+    }
+}
+
+function Connect-Aidoc-DB {
+
+$defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"C:\temp\pgsql\bin\psql.exe --username=aidocapp"}
+    }
+    else
+    {
+    C:\temp\pgsql\bin\psql.exe --username=aidocapp
+    }
+
+}
+
+function Backup-DB{
+
+$defaultValue = 'localhost'
+    if (!($serverName = Read-Host "Please Enter ServerName(Or Ip Address) [Or Enter Nothing for $defaultValue]")) { $serverName = $defaultValue }
+    #$serverName = Read-Host 'Please Enter ServerName(Or Ip Address)'    
+    if ($serverName -ne "localhost")
+    {
+    Invoke-Command  -ComputerName $serverName -Authentication NegotiateWithImplicitCredential  -ScriptBlock {"c:\temp\pgsql\bin\pg_dumpall > backupFile "}
+    }
+    else
+    {
+    c:\temp\pgsql\bin\pg_dumpall > backupFile.sql 
+    }
+    Write-Host "Backup completed."
+   
+}
 
 
 function Show-Menu {
@@ -150,6 +225,11 @@ Write-Host "Created By Liran Amrani"
     Write-Host "3: Press '3' for Getting information about EOL"
     Write-Host "4: Press '4' for Getting list of Available Versions"
     Write-Host "5: Press '5' for Check installed Version Number"
+    Write-Host "6: Press '6' for Start PostgreSQL"
+    Write-Host "7: Press '7' for Stop PostgreSQL"
+    Write-Host "8: Press '8' for Create AIdoc user and db"
+    Write-Host "9: Press '9' for Connecting to AIdoc db"
+    Write-Host "10: Press '10' for Backup"
     Write-Host "Q: Press 'Q' to quit."
     Write-Host "#PLEASE NOTICE - For Commands on remote machine - WinRM must be Available"
 }
@@ -179,6 +259,27 @@ do
     Get-PostgreSQL-Version
 
     }
+            '6' {
+    Start-PostgreSQL
+
+    }
+            '7' {
+    Stop-PostgreSQL
+
+    }
+            '8' {
+    Create-AIdoc-user-and-db
+
+    }
+            '9' {
+    Connect-Aidoc-DB
+
+    }
+                '10' {
+    Backup-DB
+
+    }
+
     }
     pause
  }

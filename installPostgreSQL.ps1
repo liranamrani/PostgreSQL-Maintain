@@ -1,1 +1,1 @@
-c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data  --username=aidocapp --auth=trust
+c:\temp\pgsql\bin\initdb.exe -D c:\temp\pgsql\data 
